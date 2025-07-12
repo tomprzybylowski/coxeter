@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Coxeter Graph Gallery</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      display: flex;
+      height: 100vh;
+    }
+
+    .sidebar {
+      width: 300px;
+      background-color: #092f08;
+      color: rgb(255, 255, 255);
+      padding: 20px;
+      box-sizing: border-box;
+      overflow-y: hidden;
+    }
+
+    .sidebar h2 {
+      margin-top: 0;
+    }
+
+    .sidebar label {
+      display: block;
+      margin: 15px 0 5px;
+    }
+
+    .radio-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .radio-group input[type="radio"] {
+      display: none;
+    }
+
+    .radio-group label {
+      background-color: #34495e;
+      padding: 6px 12px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .radio-group input[type="radio"]:checked + label {
+      background-color: #037903;
+    }
+
+    .sidebar select {
+      width: 100%;
+      padding: 8px;
+      border: none;
+      border-radius: 4px;
+      margin-bottom: 15px;
+    }
+    
+    .main-content {
+      flex: 1;
+      padding: 20px;
+      /* box-sizing: border-box; */
+      height: 95vh;
+      background-color: #f5fcff;
+    }
+
+    .about-container {
+      display: none;
+      background-color: #eaffe5;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      text-align: left;
+    }
+
+    .graph-container {
+      width: 100%;
+      height: 100%;
+      background: rgb(255, 255, 255);
+      border-radius: 10px;
+      padding: 3px;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+      text-align: center;
+    }
+
+    .graph-container img {
+      max-width: 100%;
+      max-height: 100%;
+    }
+
+    .legend ul li {
+      margin: 5px 0;
+      font-size: 14px;
+    }
+    .legend span {
+      font-size: 18px;
+      vertical-align: middle;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="sidebar">
+    <h2>Coxeter Graph Gallery</h2>
+
+    <hr style="margin: 20px 0; border-color: #7f8c8d;">
+    <button onclick="loadAbout()" style="width: 100%; padding: 10px; border: none; border-radius: 5px; background-color: #34495e; color: white; cursor: pointer;">About the Gallery</button>
+
+
+    <label>Choose type</label>
+    <div class="radio-group" id="graphTypeGroup">
+      <input type="radio" name="graphType" value="A" id="type-A" checked onchange="updateSequences()">
+      <label for="type-A">A</label>
+
+      <input type="radio" name="graphType" value="B" id="type-B" onchange="updateSequences()">
+      <label for="type-B">B</label>
+
+      <input type="radio" name="graphType" value="C" id="type-C" onchange="updateSequences()">
+      <label for="type-C">C</label>
+
+      <input type="radio" name="graphType" value="D" id="type-D" onchange="updateSequences()">
+      <label for="type-D">D</label>
+    </div>
+    <script>
+      function updateNumPlayersOptions() {
+        const type = document.querySelector('input[name="graphType"]:checked').value;
+        const numPlayersRadios = document.querySelectorAll('input[name="numPlayers"]');
+        for (const radio of numPlayersRadios) {
+          if ((type === 'A' || type === 'D') && radio.value === '2') {
+            radio.nextElementSibling.style.display = 'none';
+            radio.style.display = 'none';
+            if (radio.checked) {
+              // Select 3 players by default if 2 is hidden and was checked
+              document.getElementById('num-3').checked = true;
+            }
+          } else {
+            radio.nextElementSibling.style.display = '';
+            radio.style.display = '';
+          }
+        }
+        updateSequences();
+      }
+
+      // Attach to graphType radios
+      document.querySelectorAll('input[name="graphType"]').forEach(radio => {
+        radio.addEventListener('change', updateNumPlayersOptions);
+      });
+
+      // Initial call to set correct visibility
+      window.addEventListener('DOMContentLoaded', updateNumPlayersOptions);
+    </script>
+    <label>Choose number of players</label>
+    <div class="radio-group" id="numPlayersGroup">
+      <input type="radio" name="numPlayers" value="2" id="num-2" onchange="updateSequences()">
+      <label for="num-2">2</label>
+
+      <input type="radio" name="numPlayers" value="3" id="num-3" onchange="updateSequences()">
+      <label for="num-3">3</label>
+
+      <input type="radio" name="numPlayers" value="4" id="num-4" onchange="updateSequences()">
+      <label for="num-4">4</label>
+
+      <input type="radio" name="numPlayers" value="5" id="num-5" onchange="updateSequences()">
+      <label for="num-5">5</label>
+
+      <input type="radio" name="numPlayers" value="6" id="num-6" onchange="updateSequences()">
+      <label for="num-6">6</label>
+    </div>
+
+    <label for="sequenceSelect">Choose sequence</label>
+    <select id="sequenceSelect" style="background-color: #34495e; color: white; size: 10cm;">
+      <option>Select type and number of players first</option>
+    </select>
+
+    <button onclick="updateGraph()" style="width: 100%; padding: 10px; border: none; border-radius: 5px; background-color: #037903; color: white; cursor: pointer; margin-bottom: 10px;">Show Graph</button>
+
+    <hr style="margin: 20px 0; border-color: #7f8c8d;">
+    <script>
+      function updateLegend() {
+        const type = document.querySelector('input[name="graphType"]:checked').value;
+        const legend = document.querySelector('.legend ul');
+        legend.innerHTML = '';
+
+        if (type === 'A') {
+          legend.innerHTML = `
+            <li><span style="color: #56B4E9;">⬤</span> Cyclic flip</li>
+          `;
+        } else if (type === 'B') {
+          legend.innerHTML = `
+            <li><span style="color: #56B4E9;">⬤</span> Cyclic flip</li>
+            <li><span style="color: #E69F00;">⬤</span> Balanced flip</li>
+            <li><span style="color: #009E73;">⬤</span> Neutral pair flip</li>
+          `;
+        } else if (type === 'D') {
+          legend.innerHTML = `
+            <li><span style="color: #56B4E9;">⬤</span> Cyclic flip</li>
+            <li><span style="color: #E69F00;">⬤</span> Balanced flip</li>
+          `;
+        } else if (type === 'C') {
+          legend.innerHTML = `
+            <li><span style="color: #56B4E9;">⬤</span> Cyclic flip</li>
+            <li><span style="color: #E69F00;">⬤</span> Balanced flip</li>
+            <li><span style="color: #009E73;">⬤</span> Clover flip</li>
+          `;
+        }
+      }
+      
+      document.querySelectorAll('input[name="graphType"]').forEach(radio => {
+        radio.addEventListener('change', updateLegend);
+      });
+
+      window.addEventListener('DOMContentLoaded', updateLegend);
+    </script>
+    <div class="legend">
+      <h3 style="margin-top: 0;">Legend</h3>
+      <ul style="list-style: none; padding: 0;">
+      </ul>
+    </div>
+  </div>
+
+  <div class="main-content">
+    <!-- Graph View -->
+    <div class="graph-container" id="graph-display">
+      <p>Select a graph type and number of players.</p>
+    </div>
+  
+    <!-- About View (Initially hidden) -->
+    <div class="about-container" id="about-display"></div>
+    
+    <!-- Show Physics Button -->
+    <!-- <button id="toggle-physics" style="display: none; margin-top: 10px;">Show Physics Controls</button> -->
+  </div>
+  
+</div>
+
+  <script>
+    async function updateSequences() {
+      const type = document.querySelector('input[name="graphType"]:checked').value;
+      const numPlayers = parseInt(document.querySelector('input[name="numPlayers"]:checked').value, 10);
+      const sequenceSelect = document.getElementById('sequenceSelect');
+  
+      const res = await fetch(`/sequences?type=${type}&players=${numPlayers}`);
+      let data = await res.json();
+  
+      // 🔽 Sort: first by number of nodes, then by number of edges
+      data.sort((a, b) => {
+        if (a.num_nodes !== b.num_nodes) {
+          return a.num_nodes - b.num_nodes;
+        }
+        return a.num_edges - b.num_edges;
+      });
+  
+      sequenceSelect.innerHTML = '';
+      for (const item of data) {
+        const seqStr = item.sequence.join(',');
+        const option = document.createElement('option');
+        option.value = seqStr;
+        option.textContent = `${seqStr} (Nodes: ${item.num_nodes}, Edges: ${item.num_edges}, Degree: ${2 * item.num_edges / item.num_nodes})`;
+        sequenceSelect.appendChild(option);
+      }
+    }
+  </script>
+  
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      loadAbout();
+    });
+  </script>
+
+  <script>
+    function loadAbout() {
+      const aboutBox = document.getElementById("about-display");
+      const graphBox = document.getElementById("graph-display");
+
+      graphBox.style.display = "none";
+      aboutBox.style.display = "block";
+
+      aboutBox.innerHTML = `
+        <h3>About Coxeter interchange graphs</h3>
+        <p> This gallery visualizes Coxeter interchange graphs, which capture the structure of Coxeter 
+          tournaments—a generalization of classical tournaments.</p>
+        <p>In a classical tournament (type A), every player plays every other in a head-to-head competitive game in which
+           one of the players wins and the
+        other loses. The score sequence records how many games each player won. It turns out
+            that two tournaments with the same score sequence differ only by flipping cyclic triangles—a triple of games
+             between three players such that X beats Y, Y beats Z and Z beats X.
+              Indeed, reversing outcomes in such a triangle doesn't change the
+              overall scores. In the interchange graph of a given score each tournament of the score becomes a node, and a connection between 
+              nodes corresponds to flipping a given cyclic triangle.</p>
+        <p>Coxeter tournaments extend this framework to include collaborative and solitaire games, reflecting
+           richer structures from the root systems (types B, C, and D). In these settings, multiple
+            types of neutral configurations (beyond cyclic triangles) exist, such as balanced triangles, neutral
+             pairs, and neutral clovers. The Coxeter interchange graph connects tournaments through flips of
+              these neutral substructures.</p>
+        
+        <p> For more details about these fascinating structures, see 
+            <a href="https://doi.org/10.1007/s00026-025-00768-9" target="_blank">
+              Coxeter Interchange Graphs</a> or
+            <a href="https://doi.org/10.1214/25-EJP1283" target="_blank">
+              Random walks on Coxeter interchange graphs.</a>
+            </p>
+
+        <h3>About the gallery</h3>
+        <p> To view an interchange graph, choose a type, number of players, the score sequence of interest,
+           and click the Show Graph button. You can click on nodes and move them around.</p>
+        <p>The colours of the edges correspond to the type of the flip that connects two tournaments, see
+          the legend on the left for explanation.</p>
+        <p>In the gallery I included only interchange graphs on less than 200 nodes of the irreducible non-negative score sequences.
+          The size of graphs grows rather quickly, as the number
+          of tournaments grows super-exponentially as the number of players increases, and the graphs simply become a mess.
+           The reducible sequences 
+           are somewhat boring as they are Cartesian products of the interchange graphs
+          of the parts of the sequence. Finally, the interchange graph of a BCD-type sequence with negative entries
+           is isomorphic to the interchange graph of the sequence of absolute values.</p>
+
+          <p>  </p>
+          <p> Coded in Python with use of NetworkX, PyVis, via Copilot and ChatGPT, by Tomasz Przybyłowski, based on research done together
+             with Matthew Buckland, Brett Kolesnik and Rivka Mitchell.</p>
+      `;
+    }
+  </script>
+
+<script>
+    document.querySelector('button[onclick="updateGraph()"]').addEventListener("click", updateGraph);
+
+    async function updateGraph() {
+    const type = document.querySelector('input[name="graphType"]:checked').value;
+    const seq = document.getElementById("sequenceSelect").value;
+    const graphBox = document.getElementById("graph-display");
+    const aboutBox = document.getElementById("about-display");
+    const physicsBtn = document.getElementById("toggle-physics");
+
+    const res = await fetch(`/graph?type=${type}&seq=${seq}`);
+    if (!res.ok) {
+      graphBox.innerHTML = "<p>Failed to load graph.</p>";
+      return;
+    }
+
+    // Display only graph-related content
+    graphBox.style.display = "block";
+    aboutBox.style.display = "none";
+    
+    // Load graph iframe
+    graphBox.innerHTML = `<iframe id="graphFrame" src="/static/graph.html?t=${Date.now()}" width="100%" height="100%" style="border:none; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.15);"></iframe>`;
+    }
+  </script>
+
+
+</body>
+</html>
