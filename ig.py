@@ -160,7 +160,7 @@ def draw_interchange_graph(int_sequence, graph_type):
         directed_gr = False
 
     # Initialize PyVis Network object with physics enabled
-    net = Network(notebook=True, height="100%", width="100%", directed=directed_gr)
+    net = Network(notebook=True, height="100vh", width="100%", directed=directed_gr)
     net.set_edge_smooth('dynamic') ### For non-overlap of multiple edges
     
     graph = interchange_graph(int_sequence, graph_type)

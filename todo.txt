@@ -1,0 +1,7 @@
+Todo:
+
+1) About: Make it smoother. In about, give an example of tournaments
+    with corresponding IG.
+2) Finite root systems.
+3) Make it reasonable for smartphones.
+4) Add email addresses, links to people, etc.
